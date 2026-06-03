@@ -982,8 +982,8 @@ function submitChart() {
         localStorage.setItem('petAstroReports', JSON.stringify(reports.slice(0, 100)));
       } catch(e) {}
       
-      // Try to save to backend API
-      fetch('/api/report', {
+      // Try to save to local backend (localhost)
+      fetch('http://localhost:3477/api/report', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1002,7 +1002,24 @@ function submitChart() {
           risingSign: result.risingSign,
           risingDegree: result.risingDegree
         })
-      }).catch(e => console.log('Report save:', e.message));
+      }).catch(e => {});
+      
+      // Also try GitHub Pages (for web-only access)
+      fetch('/api/report', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          petName: name,
+          species: species,
+          breed: breed,
+          birthDate: date,
+          birthTime: time,
+          city: cityName,
+          sunSign: result.sunSign,
+          moonSign: result.moonSign,
+          risingSign: result.risingSign
+        })
+      }).catch(e => {});
       
     } catch (e) {
       showError('计算出错，请重试：' + e.message);
