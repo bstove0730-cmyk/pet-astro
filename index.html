@@ -898,6 +898,12 @@ function submitChart() {
       const result = renderResult(name, breed, date, time, cityName, cityLat, cityLon);
       
       // Auto-report to backend
+      // Increment local counter
+      try {
+        let c = parseInt(localStorage.getItem('petAstroLocalCount') || 0);
+        localStorage.setItem('petAstroLocalCount', c + 1);
+      } catch(e) {}
+      
       fetch('/api/report', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1060,8 +1066,15 @@ async function fetchUserCount() {
       if (numEl) numEl.textContent = total;
     }
   } catch(e) {
+    // API not available - use local counter or show friendly message
+    let localCount = localStorage.getItem('petAstroLocalCount') || 0;
     const el = document.getElementById('footer-user-count');
-    if (el) el.innerHTML = '🐾 ✨ 星星知道每个毛孩子的秘密';
+    if (el) el.innerHTML = '🐾 <span style="color:var(--accent);font-weight:700;">' + localCount + '</span> 位铲屎官已测';
+    const numEl = document.getElementById('user-count-num');
+    if (numEl) {
+      const resultCount = parseInt(localStorage.getItem('petAstroLocalCount') || 0);
+      numEl.textContent = resultCount;
+    }
   }
 }
 
