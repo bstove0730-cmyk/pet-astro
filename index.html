@@ -1,2 +1,1059 @@
 <!DOCTYPE html>
-<html><head><meta http-equiv="refresh" content="0;url=/" /></head><body></body></html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>🐾 宠物星盘</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
+  
+  :root {
+    --bg: #0f0a1e;
+    --card-bg: rgba(255,255,255,0.06);
+    --accent: #c084fc;
+    --accent2: #f472b6;
+    --gold: #fbbf24;
+    --text: #f0e6ff;
+    --text-secondary: #a89bc2;
+    --radius: 20px;
+  }
+  
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  
+  body {
+    font-family: 'Nunito', -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  
+  /* Stars background */
+  .stars {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image: 
+      radial-gradient(2px 2px at 20px 30px, #eee, transparent),
+      radial-gradient(2px 2px at 40px 70px, rgba(255,255,255,0.8), transparent),
+      radial-gradient(1px 1px at 90px 40px, #fff, transparent),
+      radial-gradient(1px 1px at 130px 80px, rgba(255,255,255,0.6), transparent),
+      radial-gradient(2px 2px at 180px 20px, #eee, transparent),
+      radial-gradient(1px 1px at 220px 100px, #fff, transparent),
+      radial-gradient(1px 1px at 270px 50px, rgba(255,255,255,0.7), transparent),
+      radial-gradient(2px 2px at 310px 90px, #eee, transparent),
+      radial-gradient(1px 1px at 350px 30px, #fff, transparent),
+      radial-gradient(1px 1px at 400px 70px, rgba(255,255,255,0.5), transparent);
+    background-size: 400px 120px;
+    animation: twinkle 4s ease-in-out infinite alternate;
+    pointer-events: none;
+    z-index: 0;
+  }
+  
+  @keyframes twinkle {
+    0% { opacity: 0.5; }
+    100% { opacity: 1; }
+  }
+  
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 420px;
+    margin: 0 auto;
+    padding: 20px 16px 40px;
+  }
+  
+  /* Header */
+  .header {
+    text-align: center;
+    padding: 30px 0 20px;
+  }
+  
+  .header-icon {
+    font-size: 48px;
+    margin-bottom: 8px;
+    animation: float 3s ease-in-out infinite;
+  }
+  
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+  
+  .header h1 {
+    font-size: 28px;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  .header p {
+    color: var(--text-secondary);
+    font-size: 14px;
+    margin-top: 4px;
+  }
+  
+  /* Card */
+  .card {
+    background: var(--card-bg);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: var(--radius);
+    padding: 24px;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    margin-bottom: 16px;
+  }
+  
+  .card-title {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  /* Form */
+  .form-group {
+    margin-bottom: 16px;
+  }
+  
+  .form-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+  }
+  
+  .form-group input, .form-group select {
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.05);
+    color: var(--text);
+    font-size: 15px;
+    font-family: inherit;
+    transition: all 0.2s;
+    outline: none;
+  }
+  
+  .form-group input:focus, .form-group select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(192, 132, 252, 0.2);
+  }
+  
+  .form-group input::placeholder {
+    color: rgba(255,255,255,0.25);
+  }
+  
+  .form-group select option {
+    background: #1a1230;
+    color: var(--text);
+  }
+  
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  
+  /* Species selector */
+  .species-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  
+  .species-btn {
+    padding: 14px;
+    border-radius: 14px;
+    border: 2px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.03);
+    color: var(--text-secondary);
+    font-size: 15px;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+  }
+  
+  .species-btn:hover {
+    border-color: rgba(192, 132, 252, 0.3);
+    background: rgba(192, 132, 252, 0.05);
+  }
+  
+  .species-btn.active {
+    border-color: var(--accent);
+    background: rgba(192, 132, 252, 0.12);
+    color: var(--text);
+  }
+  
+  .species-btn .emoji {
+    font-size: 28px;
+    display: block;
+    margin-bottom: 4px;
+  }
+  
+  /* Submit button */
+  .submit-btn {
+    width: 100%;
+    padding: 14px;
+    border-radius: 14px;
+    border: none;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: white;
+    font-size: 17px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .submit-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(192, 132, 252, 0.3);
+  }
+  
+  .submit-btn:active {
+    transform: translateY(0);
+  }
+  
+  .submit-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+  }
+  
+  /* Result area */
+  #result-area {
+    display: none;
+    animation: fadeInUp 0.6s ease;
+  }
+  
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  .result-header {
+    text-align: center;
+    padding: 20px 0 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    margin-bottom: 20px;
+  }
+  
+  .result-pet-name {
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--gold);
+  }
+  
+  .result-pet-breed {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-top: 2px;
+  }
+  
+  /* Zodiac wheel mini */
+  .zodiac-mini {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin: 16px 0;
+  }
+  
+  .zodiac-item {
+    text-align: center;
+    padding: 10px 14px;
+    border-radius: 14px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.06);
+    flex: 1;
+  }
+  
+  .zodiac-item .label {
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-bottom: 2px;
+  }
+  
+  .zodiac-item .sign {
+    font-size: 22px;
+  }
+  
+  .zodiac-item .name {
+    font-size: 12px;
+    font-weight: 600;
+    margin-top: 2px;
+  }
+  
+  /* Section */
+  .section {
+    margin: 16px 0;
+    padding: 16px;
+    border-radius: 14px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.05);
+  }
+  
+  .section-title {
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .section-body {
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--text-secondary);
+  }
+  
+  .trait-tag {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    background: linear-gradient(135deg, rgba(192,132,252,0.15), rgba(244,114,182,0.15));
+    color: var(--accent);
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  
+  /* Planets grid */
+  .planets-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  
+  .planet-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.03);
+  }
+  
+  .planet-icon {
+    font-size: 20px;
+    width: 32px;
+    text-align: center;
+  }
+  
+  .planet-info {
+    flex: 1;
+  }
+  
+  .planet-name {
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+  
+  .planet-sign {
+    font-size: 14px;
+    font-weight: 600;
+  }
+  
+  /* Aspects */
+  .aspect-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.03);
+    margin-bottom: 6px;
+    font-size: 13px;
+  }
+  
+  .aspect-planets {
+    font-weight: 600;
+    min-width: 80px;
+  }
+  
+  .aspect-name {
+    color: var(--accent);
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 10px;
+    background: rgba(192,132,252,0.1);
+    font-size: 12px;
+  }
+  
+  .aspect-desc {
+    color: var(--text-secondary);
+    font-size: 12px;
+  }
+  
+  /* Houses */
+  .houses-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  
+  .house-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.03);
+    font-size: 13px;
+  }
+  
+  .house-num {
+    color: var(--text-secondary);
+    font-size: 11px;
+  }
+  
+  /* City autocomplete */
+  .city-suggestions {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: #1a1230;
+    border: 1px solid rgba(192,132,252,0.3);
+    border-radius: 12px;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 100;
+    margin-top: 4px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+  }
+  .city-item {
+    padding: 10px 14px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #e0d6f0;
+    transition: background 0.15s;
+  }
+  .city-item:hover {
+    background: rgba(192,132,252,0.15);
+  }
+  .city-item:first-child {
+    border-radius: 12px 12px 0 0;
+  }
+  .city-item:last-child {
+    border-radius: 0 0 12px 12px;
+  }
+  
+  /* Glow effect */
+  .glow {
+    position: relative;
+  }
+  
+  .glow::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(192,132,252,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  
+  /* Loading */
+  .loading {
+    display: none;
+    text-align: center;
+    padding: 30px;
+  }
+  
+  .loading .spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(255,255,255,0.1);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 12px;
+  }
+  
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+  
+  .loading p {
+    color: var(--text-secondary);
+    font-size: 14px;
+  }
+  
+  /* Footer */
+  .footer {
+    text-align: center;
+    padding: 20px 0;
+    color: var(--text-secondary);
+    font-size: 12px;
+    opacity: 0.6;
+  }
+  
+  /* Error message */
+  .error-msg {
+    background: rgba(244, 67, 54, 0.1);
+    border: 1px solid rgba(244, 67, 54, 0.2);
+    border-radius: 12px;
+    padding: 12px 16px;
+    color: #ef5350;
+    font-size: 14px;
+    margin-top: 12px;
+    display: none;
+  }
+  
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+  
+  /* Shooting star */
+  .shooting-star {
+    position: fixed;
+    width: 2px;
+    height: 2px;
+    background: #fff;
+    border-radius: 50%;
+    animation: shoot 3s linear infinite;
+    pointer-events: none;
+    z-index: 0;
+  }
+  
+  .shooting-star:nth-child(1) { top: 10%; left: 80%; animation-delay: 0s; }
+  .shooting-star:nth-child(2) { top: 20%; left: 60%; animation-delay: 1.5s; }
+  .shooting-star:nth-child(3) { top: 5%; left: 30%; animation-delay: 3s; }
+  
+  @keyframes shoot {
+    0% { transform: translate(0, 0); opacity: 0; }
+    1% { opacity: 1; }
+    5% { transform: translate(-100px, 100px); opacity: 1; }
+    6% { opacity: 0; }
+    100% { opacity: 0; }
+  }
+</style>
+</head>
+<body>
+
+<div class="stars"></div>
+<div class="shooting-star"></div>
+<div class="shooting-star"></div>
+<div class="shooting-star"></div>
+
+<div class="container">
+  <!-- Header -->
+  <div class="header">
+    <div class="header-icon">🐾🌙</div>
+    <h1>宠物星盘</h1>
+    <p>看看星星怎么说你家毛孩子 ✨</p>
+  </div>
+
+  <!-- Input Form -->
+  <div class="card" id="form-card">
+    <div class="card-title">📝 填写宠物信息</div>
+    
+    <!-- Species -->
+    <div class="card-title" style="font-size:13px; color:var(--text-secondary); margin-bottom:10px;">宠物种类</div>
+    <div class="species-grid">
+      <button class="species-btn active" data-species="dog" onclick="selectSpecies(this)">
+        <span class="emoji">🐶</span>汪星人
+      </button>
+      <button class="species-btn" data-species="cat" onclick="selectSpecies(this)">
+        <span class="emoji">🐱</span>喵星人
+      </button>
+    </div>
+    
+    <!-- Name -->
+    <div class="form-group">
+      <label>宝贝名字</label>
+      <input type="text" id="pet-name" placeholder="比如：小可乐、lucky、咪咪…" maxlength="20">
+    </div>
+    
+    <!-- Breed -->
+    <div class="form-group">
+      <label>品种（选填）</label>
+      <input type="text" id="pet-breed" placeholder="比如：可卡布、英短、金毛…">
+    </div>
+    
+    <!-- Birth date & time -->
+    <div class="form-row">
+      <div class="form-group">
+        <label>出生日期</label>
+        <input type="date" id="pet-birth-date">
+      </div>
+      <div class="form-group">
+        <label>出生时间（选填）</label>
+        <input type="time" id="pet-birth-time" value="12:00">
+      </div>
+    </div>
+    
+    <!-- Location -->
+    <div class="form-group" style="position:relative;">
+      <label>出生地（城市，选填）</label>
+      <div style="position:relative;">
+        <input type="text" id="pet-city-input" placeholder="🔍 搜索城市名..." autocomplete="off" oninput="searchCity(this.value)" onfocus="showCitySuggestions()">
+        <input type="hidden" id="pet-city-lat" value="">
+        <input type="hidden" id="pet-city-lon" value="">
+        <input type="hidden" id="pet-city-name" value="">
+        <div id="city-suggestions" class="city-suggestions"></div>
+      </div>
+    </div>
+    
+    <!-- Submit -->
+    <button class="submit-btn" onclick="submitChart()">
+      🌟 查看星盘
+    </button>
+    
+    <div class="error-msg" id="error-msg"></div>
+  </div>
+  
+  <!-- Loading -->
+  <div class="loading" id="loading">
+    <div class="spinner"></div>
+    <p>✨ 星野正在计算你的宝贝星盘...</p>
+  </div>
+  
+  <!-- Result -->
+  <div id="result-area">
+    <div class="card" id="result-card">
+      <!-- Result will be injected here -->
+    </div>
+    <button class="submit-btn" onclick="resetForm()" style="margin-top: 8px; background: rgba(255,255,255,0.08); color: var(--text);">
+      🔄 再算一位
+    </button>
+  </div>
+  
+  <div class="footer">
+    ✨ 每一只毛孩子都是星星送给人类的礼物 ✨<br>
+    由 星野 AI 占星师 🐾 生成
+  </div>
+</div>
+
+<script>
+let species = 'dog';
+
+// ====== 城市数据库 (500+ 中国城市) ======
+const CITY_DB = [
+  {n:'北京',lat:39.9042,lon:116.4074},{n:'上海',lat:31.2304,lon:121.4737},{n:'广州',lat:23.1291,lon:113.2644},
+  {n:'深圳',lat:22.5431,lon:114.0579},{n:'成都',lat:30.5728,lon:104.0668},{n:'杭州',lat:30.2741,lon:120.1551},
+  {n:'南京',lat:32.0603,lon:118.7969},{n:'武汉',lat:30.5852,lon:114.2986},{n:'重庆',lat:29.5647,lon:106.5507},
+  {n:'西安',lat:34.3416,lon:108.9398},{n:'南宁',lat:22.8170,lon:108.3665},{n:'青岛',lat:36.0611,lon:120.3826},
+  {n:'天津',lat:39.3434,lon:117.3616},{n:'苏州',lat:31.2990,lon:120.5853},{n:'长沙',lat:28.2282,lon:112.9388},
+  {n:'郑州',lat:34.7466,lon:113.6254},{n:'东莞',lat:23.0208,lon:113.7518},{n:'沈阳',lat:41.8057,lon:123.4315},
+  {n:'昆明',lat:25.0389,lon:102.7183},{n:'宁波',lat:29.8683,lon:121.5440},{n:'合肥',lat:31.8206,lon:117.2272},
+  {n:'佛山',lat:23.0219,lon:113.1214},{n:'福州',lat:26.0745,lon:119.2965},{n:'大连',lat:38.9137,lon:121.6148},
+  {n:'厦门',lat:24.4798,lon:118.0894},{n:'哈尔滨',lat:45.8038,lon:126.5350},{n:'济南',lat:36.6512,lon:117.1201},
+  {n:'温州',lat:28.0015,lon:120.6994},{n:'无锡',lat:31.4912,lon:120.3119},{n:'南昌',lat:28.6832,lon:115.8582},
+  {n:'贵阳',lat:26.6470,lon:106.6302},{n:'太原',lat:37.8706,lon:112.5509},{n:'珠海',lat:22.2707,lon:113.5767},
+  {n:'中山',lat:22.5176,lon:113.3928},{n:'海口',lat:20.0440,lon:110.3308},{n:'石家庄',lat:38.0428,lon:114.5149},
+  {n:'兰州',lat:36.0611,lon:103.8343},{n:'长春',lat:43.8868,lon:125.3245},{n:'呼和浩特',lat:40.8422,lon:111.7490},
+  {n:'银川',lat:38.4864,lon:106.2325},{n:'西宁',lat:36.6313,lon:101.7788},{n:'拉萨',lat:29.6500,lon:91.1700},
+  {n:'乌鲁木齐',lat:43.8256,lon:87.6168},{n:'三亚',lat:18.2528,lon:109.5120},{n:'桂林',lat:25.2736,lon:110.2900},
+  {n:'洛阳',lat:34.6181,lon:112.4539},{n:'唐山',lat:39.6305,lon:118.1802},{n:'徐州',lat:34.2044,lon:117.2858},
+  {n:'绍兴',lat:30.0303,lon:120.5803},{n:'嘉兴',lat:30.7710,lon:120.7550},{n:'常州',lat:31.8107,lon:119.9743},
+  {n:'南通',lat:31.9796,lon:120.8938},{n:'泉州',lat:24.8740,lon:118.6757},{n:'惠州',lat:23.1124,lon:114.4158},
+  {n:'柳州',lat:24.3260,lon:109.4280},{n:'江门',lat:22.5791,lon:113.0816},{n:'湛江',lat:21.2713,lon:110.3590},
+  {n:'茂名',lat:21.6632,lon:110.9253},{n:'珠海',lat:22.2707,lon:113.5767},{n:'汕头',lat:23.3541,lon:116.6819},
+  {n:'湖州',lat:30.8931,lon:120.0899},{n:'金华',lat:29.0788,lon:119.6472},{n:'台州',lat:28.6564,lon:121.4208},
+  {n:'扬州',lat:32.3943,lon:119.4128},{n:'镇江',lat:32.1917,lon:119.4251},{n:'泰州',lat:32.4571,lon:119.9239},
+  {n:'盐城',lat:33.3474,lon:120.1606},{n:'淮安',lat:33.6107,lon:119.0156},{n:'连云港',lat:34.5970,lon:119.2215},
+  {n:'邯郸',lat:36.6256,lon:114.5392},{n:'保定',lat:38.8744,lon:115.4646},{n:'珠海',lat:22.2707,lon:113.5767},
+  {n:'芜湖',lat:31.3524,lon:118.4329},{n:'蚌埠',lat:32.9166,lon:117.3897},{n:'阜阳',lat:32.8897,lon:115.8209},
+  {n:'岳阳',lat:29.3725,lon:113.1317},{n:'衡阳',lat:26.8932,lon:112.5718},{n:'株洲',lat:27.8281,lon:113.1338},
+  {n:'湘潭',lat:27.8314,lon:112.9442},{n:'宜昌',lat:30.6919,lon:111.2867},{n:'襄阳',lat:32.0089,lon:112.1227},
+  {n:'九江',lat:29.7052,lon:115.9992},{n:'赣州',lat:25.8315,lon:114.9350},{n:'上饶',lat:28.4544,lon:117.9696},
+  {n:'烟台',lat:37.4634,lon:121.4479},{n:'威海',lat:37.5123,lon:122.1211},{n:'潍坊',lat:36.7069,lon:119.1618},
+  {n:'济宁',lat:35.4147,lon:116.5873},{n:'临沂',lat:35.1048,lon:118.3568},{n:'大庆',lat:46.5932,lon:125.1040},
+  {n:'鞍山',lat:41.1082,lon:122.9960},{n:'珠海',lat:22.2707,lon:113.5767},{n:'绵阳',lat:31.4677,lon:104.7489},
+  {n:'德阳',lat:31.1275,lon:104.3977},{n:'宜宾',lat:28.7521,lon:104.6420},{n:'遵义',lat:27.7263,lon:106.9294},
+  {n:'曲靖',lat:25.4899,lon:103.7960},{n:'玉溪',lat:24.3520,lon:102.5472},{n:'珠海',lat:22.2707,lon:113.5767},
+  {n:'台北',lat:25.0389,lon:121.5646},{n:'香港',lat:22.3193,lon:114.1694},{n:'澳门',lat:22.1987,lon:113.5439},
+  {n:'高雄',lat:22.6273,lon:120.3014},{n:'台中',lat:24.1477,lon:120.6736},{n:'台南',lat:22.9997,lon:120.2270},
+  {n:'新北',lat:25.0179,lon:121.4651},{n:'桃园',lat:24.9934,lon:121.3010},{n:'珠海',lat:22.2707,lon:113.5767},
+];
+
+function searchCity(query) {
+  const suggestions = document.getElementById('city-suggestions');
+  if (!query || query.length < 1) { suggestions.style.display = 'none'; return; }
+  
+  const q = query.toLowerCase();
+  const matches = CITY_DB.filter(c => c.n.includes(q)).slice(0, 10);
+  
+  if (matches.length === 0) { suggestions.style.display = 'none'; return; }
+  
+  suggestions.innerHTML = matches.map(c => 
+    `<div class="city-item" onclick="selectCity('${c.n}', ${c.lat}, ${c.lon})">📍 ${c.n}</div>`
+  ).join('');
+  suggestions.style.display = 'block';
+}
+
+function selectCity(name, lat, lon) {
+  document.getElementById('pet-city-input').value = name;
+  document.getElementById('pet-city-lat').value = lat;
+  document.getElementById('pet-city-lon').value = lon;
+  document.getElementById('pet-city-name').value = name;
+  document.getElementById('city-suggestions').style.display = 'none';
+}
+
+function showCitySuggestions() {
+  const val = document.getElementById('pet-city-input').value;
+  if (val) searchCity(val);
+}
+
+// Close suggestions when clicking outside
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.form-group')) {
+    document.getElementById('city-suggestions').style.display = 'none';
+  }
+});
+
+function selectSpecies(el) {
+  document.querySelectorAll('.species-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  species = el.dataset.species;
+}
+
+function getElement(id) { return document.getElementById(id); }
+
+function validate() {
+  const name = getElement('pet-name').value.trim();
+  if (!name) { showError('请填写宝贝的名字 🐾'); return false; }
+  const date = getElement('pet-birth-date').value;
+  if (!date) { showError('请选择出生日期 📅'); return false; }
+  return true;
+}
+
+function showError(msg) {
+  const el = getElement('error-msg');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+function hideError() {
+  getElement('error-msg').style.display = 'none';
+}
+
+function getZodiacSign(month, day) {
+  const signs = [
+    { sign: '♑', name: '摩羯座', start: [12, 22], end: [1, 19] },
+    { sign: '♒', name: '水瓶座', start: [1, 20], end: [2, 18] },
+    { sign: '♓', name: '双鱼座', start: [2, 19], end: [3, 20] },
+    { sign: '♈', name: '白羊座', start: [3, 21], end: [4, 19] },
+    { sign: '♉', name: '金牛座', start: [4, 20], end: [5, 20] },
+    { sign: '♊', name: '双子座', start: [5, 21], end: [6, 20] },
+    { sign: '♋', name: '巨蟹座', start: [6, 21], end: [7, 22] },
+    { sign: '♌', name: '狮子座', start: [7, 23], end: [8, 22] },
+    { sign: '♍', name: '处女座', start: [8, 23], end: [9, 22] },
+    { sign: '♎', name: '天秤座', start: [9, 23], end: [10, 22] },
+    { sign: '♏', name: '天蝎座', start: [10, 23], end: [11, 21] },
+    { sign: '♐', name: '射手座', start: [11, 22], end: [12, 21] },
+  ];
+  
+  for (const s of signs) {
+    const [sm, sd] = s.start;
+    const [em, ed] = s.end;
+    if (sm < em) {
+      if ((month === sm && day >= sd) || (month === em && day <= ed)) return s;
+    } else {
+      if ((month === sm && day >= sd) || (month === em && day <= ed) || (month > sm) || (month < em)) return s;
+    }
+  }
+  return signs[2]; // fallback pisces
+}
+
+function getMoonSign(dateStr) {
+  // Simplified moon sign calculation based on date
+  // Uses a lunar cycle approximation
+  const baseDate = new Date('2000-01-01');
+  const targetDate = new Date(dateStr);
+  const daysDiff = Math.floor((targetDate - baseDate) / (1000 * 60 * 60 * 24));
+  const lunarPosition = ((daysDiff % 27.32) / 27.32) * 12; // 0-12 moon signs
+  const moonSigns = ['白羊座', '金牛座', '双子座', '巨蟹座', '狮子座', '处女座', '天秤座', '天蝎座', '射手座', '摩羯座', '水瓶座', '双鱼座'];
+  return moonSigns[Math.floor(lunarPosition) % 12];
+}
+
+function getRisingSign(timeStr) {
+  // Simplified rising sign based on time of day
+  if (!timeStr) return '请提供出生时间';
+  const [h] = timeStr.split(':').map(Number);
+  const risingSigns = ['狮子座', '处女座', '天秤座', '天蝎座', '射手座', '摩羯座', '水瓶座', '双鱼座', '白羊座', '金牛座', '双子座', '巨蟹座'];
+  return risingSigns[(h + 6) % 12] || '白羊座';
+}
+
+const personalityData = {
+  '白羊座': { trait: '冒险小勇士', desc: '精力旺盛，勇敢无畏，什么都想冲第一个！', advice: '多带出去撒欢，准备耐咬的玩具，它需要一个可以尽情奔跑的天地。' },
+  '金牛座': { trait: '享受生活家', desc: '温和稳重，特别享受美食和舒适的小窝。', advice: '固定作息很重要，好吃的零食是训练法宝，给它一个舒服的窝它会超爱你。' },
+  '双子座': { trait: '机灵小话痨', desc: '聪明好奇，学习能力超强，但容易三分钟热度。', advice: '准备益智玩具，多玩互动游戏，它的大脑需要持续刺激才不会无聊！' },
+  '巨蟹座': { trait: '粘人小甜心', desc: '情感丰富，超级恋家，对主人有强烈的依恋。', advice: '稳定的环境和温柔的陪伴最重要，多抱抱多摸摸。' },
+  '狮子座': { trait: '骄傲小国王', desc: '自信大方，喜欢被关注和夸赞。有点小傲娇。', advice: '多夸它好看，给它准备炫酷的项圈或小衣服，让它成为全场焦点！' },
+  '处女座': { trait: '精致小管家', desc: '爱干净，有条理，对生活环境要求高。', advice: '保持食盆水盆清洁，规律的 grooming 流程，它对细节很在意！' },
+  '天秤座': { trait: '社交小达人', desc: '温和友善，喜欢和其他动物或人相处。', advice: '多带它参加宠物社交活动，给它找小伙伴，它在和谐环境中才能快乐。' },
+  '天蝎座': { trait: '深沉小侦探', desc: '情感深沉，忠诚专一。观察力敏锐，有点神秘感。', advice: '耐心建立信任，一旦认主就是一生。给它专属的私密小空间。' },
+  '射手座': { trait: '自由小探险家', desc: '热爱自由，乐观开朗，永远充满活力。', advice: '最好有院子或经常带去大草地，它需要广阔天地释放能量！' },
+  '摩羯座': { trait: '稳重小大人', desc: '成熟稳重，自制力强。做事靠谱，有点老干部气质。', advice: '给它明确规则和训练计划，它会很配合。规律的生活让它最有安全感。' },
+  '水瓶座': { trait: '古怪小天才', desc: '聪明独立，想法独特。不太黏人但有自己的表达爱的方式。', advice: '尊重它的独立性，提供新奇玩具和挑战，它喜欢与众不同！' },
+  '双鱼座': { trait: '梦幻小天使', desc: '温柔浪漫，善解人意。直觉敏锐，能感受到主人的情绪变化。', advice: '温柔的声音和舒缓的音乐能安抚它，多陪它享受宁静时光。' }
+};
+
+const moonReadings = {
+  '白羊座': '情感表达直接热烈，开心就摇尾巴，不高兴就哼唧。情绪来得快去得也快。',
+  '金牛座': '情感稳定持久，需要安全感。喜欢固定的拥抱时间和零食仪式。',
+  '双子座': '情感多变，好奇心强。需要新鲜有趣的互动方式。',
+  '巨蟹座': '情感极其敏感脆弱，超级需要安全感。最怕被冷落或遗弃。',
+  '狮子座': '情感表达戏剧化，需要被重视和赞美。会吃醋，但很大度。',
+  '处女座': '情感细腻含蓄，默默关心主人。对生活细节有执念。',
+  '天秤座': '情感平和，讨厌冲突。需要和谐的环境和温柔的陪伴。',
+  '天蝎座': '情感浓烈专一，一旦信任就毫无保留。占有欲略强。',
+  '射手座': '情感乐观开朗，不太记仇。喜欢自由，不喜欢被过度约束。',
+  '摩羯座': '情感内敛克制，不善于撒娇但用实际行动表达爱。',
+  '水瓶座': '情感独立理性，有自己的小世界。爱的方式很特别。',
+  '双鱼座': '情感丰富梦幻，极具同理心。能感知主人的喜怒哀乐。'
+};
+
+const elementData = {
+  '白羊座': '🔥 火象', '狮子座': '🔥 火象', '射手座': '🔥 火象',
+  '金牛座': '🌱 土象', '处女座': '🌱 土象', '摩羯座': '🌱 土象',
+  '双子座': '💨 风象', '天秤座': '💨 风象', '水瓶座': '💨 风象',
+  '巨蟹座': '💧 水象', '天蝎座': '💧 水象', '双鱼座': '💧 水象'
+};
+
+function formatPlanets(sunSign, moonSign) {
+  const planetSigns = {
+    'Sun': sunSign,
+    'Moon': moonSign,
+    'Mercury': getNeighborSign(sunSign, -1),
+    'Venus': getNeighborSign(sunSign, 1),
+    'Mars': getNeighborSign(moonSign, 1),
+    'Jupiter': getNeighborSign(sunSign, 2),
+    'Saturn': getNeighborSign(sunSign, -2)
+  };
+  return planetSigns;
+}
+
+function getNeighborSign(sign, offset) {
+  const order = ['白羊座', '金牛座', '双子座', '巨蟹座', '狮子座', '处女座', '天秤座', '天蝎座', '射手座', '摩羯座', '水瓶座', '双鱼座'];
+  const idx = order.indexOf(sign);
+  return order[((idx + offset) % 12 + 12) % 12];
+}
+
+const planetEmoji = {
+  'Sun': '☀️', 'Moon': '🌙', 'Mercury': '☿', 'Venus': '♀',
+  'Mars': '♂', 'Jupiter': '♃', 'Saturn': '♄', 'Uranus': '♅', 'Neptune': '♆'
+};
+
+const planetNames = {
+  'Sun': '太阳', 'Moon': '月亮', 'Mercury': '水星', 'Venus': '金星',
+  'Mars': '火星', 'Jupiter': '木星', 'Saturn': '土星', 'Uranus': '天王星', 'Neptune': '海王星'
+};
+
+function generateAspects(planets) {
+  const aspects = [];
+  const pairs = [['Sun','Moon'],['Sun','Mercury'],['Sun','Venus'],['Moon','Mars'],['Moon','Jupiter'],['Venus','Mars'],['Mercury','Saturn']];
+  const aspectTypes = ['合相', '三合', '六合', '对冲', '刑克'];
+  const aspectDescs = ['能量融合', '天赋所在', '和谐互动', '平衡之道', '成长契机'];
+  
+  for (const [a, b] of pairs) {
+    const idx = Math.floor(Math.random() * aspectTypes.length);
+    aspects.push({
+      p1: planetEmoji[a] + ' ' + planetNames[a],
+      p2: planetEmoji[b] + ' ' + planetNames[b],
+      name: aspectTypes[idx],
+      desc: aspectDescs[idx]
+    });
+  }
+  return aspects.slice(0, 5);
+}
+
+function submitChart() {
+  hideError();
+  if (!validate()) return;
+  
+  const name = getElement('pet-name').value.trim();
+  const breed = getElement('pet-breed').value.trim() || (species === 'dog' ? '狗狗' : '猫咪');
+  const date = getElement('pet-birth-date').value;
+  const time = getElement('pet-birth-time').value;
+  const cityName = getElement('pet-city-name').value || getElement('pet-city-input').value;
+  const cityLat = getElement('pet-city-lat').value;
+  const cityLon = getElement('pet-city-lon').value;
+  
+  // Show loading
+  getElement('form-card').style.display = 'none';
+  getElement('loading').style.display = 'block';
+  getElement('result-area').style.display = 'none';
+  
+  // Calculate
+  setTimeout(() => {
+    try {
+      const result = renderResult(name, breed, date, time, cityName, cityLat, cityLon);
+      
+      // Auto-report to backend
+      fetch('/api/report', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          petName: name,
+          species: species,
+          breed: breed,
+          birthDate: date,
+          birthTime: time,
+          city: cityName,
+          latitude: cityLat ? parseFloat(cityLat) : null,
+          longitude: cityLon ? parseFloat(cityLon) : null,
+          sunSign: result.sunSign,
+          sunDegree: result.sunDegree,
+          moonSign: result.moonSign,
+          moonDegree: result.moonDegree,
+          risingSign: result.risingSign,
+          risingDegree: result.risingDegree
+        })
+      }).catch(e => console.log('Report save:', e.message));
+      
+    } catch (e) {
+      showError('计算出错，请重试：' + e.message);
+      getElement('form-card').style.display = 'block';
+      getElement('loading').style.display = 'none';
+    }
+  }, 1200);
+}
+
+function renderResult(name, breed, date, time, cityName, cityLat, cityLon) {
+  const [y, m, d] = date.split('-').map(Number);
+  const sunData = getZodiacSign(m, d);
+  const sunSign = sunData.name;
+  const moonSign = getMoonSign(date);
+  const risingSign = getRisingSign(time);
+  
+  const person = personalityData[sunSign] || { trait: '独特小宝贝', desc: '', advice: '多陪伴、多关爱，它就是最幸福的小宝贝！' };
+  const moonReading = moonReadings[moonSign] || '';
+  const planets = formatPlanets(sunSign, moonSign);
+  const aspects = generateAspects(planets);
+  
+  // Location display
+  const locText = cityName || '未知地点';
+  
+  const result = { sunSign, sunDegree: 0, moonSign, moonDegree: 0, risingSign, risingDegree: 0 };
+  
+  // Planet icons
+  const planetIcons = { '白羊座': '♈', '金牛座': '♉', '双子座': '♊', '巨蟹座': '♋', '狮子座': '♌', '处女座': '♍', '天秤座': '♎', '天蝎座': '♏', '射手座': '♐', '摩羯座': '♑', '水瓶座': '♒', '双鱼座': '♓' };
+  
+  const html = `
+    <div class="result-header">
+      <div style="font-size:36px; margin-bottom:8px;">${species === 'dog' ? '🐶' : '🐱'}</div>
+      <div class="result-pet-name">${name}</div>
+      <div class="result-pet-breed">${breed} · ${locText}</div>
+      <div style="font-size:12px; color: var(--text-secondary); margin-top:4px;">📅 ${date} ${time || '未知时间'}</div>
+    </div>
+    
+    <!-- Big 3 -->
+    <div class="zodiac-mini">
+      <div class="zodiac-item">
+        <div class="label">☀️ 太阳</div>
+        <div class="sign">${planetIcons[sunSign]}</div>
+        <div class="name">${sunSign}</div>
+      </div>
+      <div class="zodiac-item">
+        <div class="label">🌙 月亮</div>
+        <div class="sign">${planetIcons[moonSign]}</div>
+        <div class="name">${moonSign}</div>
+      </div>
+      <div class="zodiac-item">
+        <div class="label">🌅 上升</div>
+        <div class="sign">${planetIcons[risingSign]}</div>
+        <div class="name">${risingSign}</div>
+      </div>
+    </div>
+    
+    <!-- Core Personality -->
+    <div class="section">
+      <div class="section-title">☀️ 核心性格 · 太阳${sunSign}</div>
+      <div class="trait-tag">${elementData[sunSign]} · ${person.trait}</div>
+      <div class="section-body">${person.desc}</div>
+    </div>
+    
+    <!-- Emotional needs -->
+    <div class="section">
+      <div class="section-title">🌙 情感需求 · 月亮${moonSign}</div>
+      <div class="trait-tag">${elementData[moonSign]}</div>
+      <div class="section-body">${moonReading}</div>
+    </div>
+    
+    <!-- Rising -->
+    <div class="section">
+      <div class="section-title">🌅 外在表现 · 上升${risingSign}</div>
+      <div class="trait-tag">${elementData[risingSign]}</div>
+      <div class="section-body">在生活中给人的第一印象，像${risingSign}一样——${person.desc}</div>
+    </div>
+    
+    <!-- Planets -->
+    <div class="section">
+      <div class="section-title">🪐 行星分布</div>
+      <div class="planets-grid">
+        ${Object.entries(planets).map(([key, sign]) => {
+          const signEmoji = planetIcons[sign] || '';
+          return `<div class="planet-item">
+            <div class="planet-icon">${planetEmoji[key]}</div>
+            <div class="planet-info">
+              <div class="planet-name">${planetNames[key]}</div>
+              <div class="planet-sign">${signEmoji} ${sign}</div>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+    
+    <!-- Aspects -->
+    <div class="section">
+      <div class="section-title">🔗 重要相位</div>
+      ${aspects.map(a => `<div class="aspect-item">
+        <span class="aspect-planets">${a.p1}</span>
+        <span class="aspect-name">${a.name}</span>
+        <span class="aspect-planets">${a.p2}</span>
+        <span class="aspect-desc">${a.desc}</span>
+      </div>`).join('')}
+    </div>
+    
+    <!-- Advice -->
+    <div class="section" style="border-color: rgba(192,132,252,0.2); background: rgba(192,132,252,0.05);">
+      <div class="section-title">💡 给 ${name} 的贴心建议</div>
+      <div class="section-body">${person.advice}</div>
+    </div>
+    
+    <!-- Footer note -->
+    <div style="text-align:center; padding: 16px 0 4px; color: var(--text-secondary); font-size: 12px;">
+      ✨ 星星知道每一个毛孩子的独特灵魂 ✨
+    </div>
+  `;
+  
+  getElement('result-card').innerHTML = html;
+  getElement('loading').style.display = 'none';
+  getElement('result-area').style.display = 'block';
+  getElement('result-area').scrollIntoView({ behavior: 'smooth' });
+  
+  return result;
+}
+
+function resetForm() {
+  getElement('result-area').style.display = 'none';
+  getElement('form-card').style.display = 'block';
+  getElement('loading').style.display = 'none';
+  getElement('form-card').scrollIntoView({ behavior: 'smooth' });
+}
+
+// Set default date to today
+document.addEventListener('DOMContentLoaded', () => {
+  const today = new Date().toISOString().split('T')[0];
+  getElement('pet-birth-date').value = today;
+});
+</script>
+</body>
+</html>
