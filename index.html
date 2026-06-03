@@ -898,12 +898,26 @@ function submitChart() {
       const result = renderResult(name, breed, date, time, cityName, cityLat, cityLon);
       
       // Auto-report to backend
-      // Increment local counter
+      // Save to localStorage for offline/non-backend use
       try {
-        let c = parseInt(localStorage.getItem('petAstroLocalCount') || 0);
-        localStorage.setItem('petAstroLocalCount', c + 1);
+        let reports = JSON.parse(localStorage.getItem('petAstroReports') || '[]');
+        reports.unshift({
+          id: 'LOCAL' + Date.now(),
+          petName: name,
+          species: species,
+          breed: breed,
+          birthDate: date,
+          birthTime: time,
+          city: cityName,
+          sunSign: result.sunSign,
+          moonSign: result.moonSign,
+          risingSign: result.risingSign,
+          createdAt: new Date().toISOString()
+        });
+        localStorage.setItem('petAstroReports', JSON.stringify(reports.slice(0, 100)));
       } catch(e) {}
       
+      // Try to save to backend API
       fetch('/api/report', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1057,6 +1071,7 @@ function renderResult(name, breed, date, time, cityName, cityLat, cityLon) {
 
 async function fetchUserCount() {
   try {
+    // Try backend API first
     const r = await fetch('/api/stats');
     const data = await r.json();
     if (data.success && data.stats) {
@@ -1064,17 +1079,20 @@ async function fetchUserCount() {
       document.getElementById('footer-user-count').innerHTML = '🐾 <span style="color:var(--accent);font-weight:700;">' + total + '</span> 位铲屎官已测';
       const numEl = document.getElementById('user-count-num');
       if (numEl) numEl.textContent = total;
+      return;
     }
-  } catch(e) {
-    // API not available - use local counter or show friendly message
-    let localCount = localStorage.getItem('petAstroLocalCount') || 0;
-    const el = document.getElementById('footer-user-count');
-    if (el) el.innerHTML = '🐾 <span style="color:var(--accent);font-weight:700;">' + localCount + '</span> 位铲屎官已测';
+  } catch(e) {}
+  
+  // Fallback: count from localStorage
+  try {
+    let reports = JSON.parse(localStorage.getItem('petAstroReports') || '[]');
+    const total = reports.length;
+    document.getElementById('footer-user-count').innerHTML = '🐾 <span style="color:var(--accent);font-weight:700;">' + total + '</span> 位铲屎官已测';
     const numEl = document.getElementById('user-count-num');
-    if (numEl) {
-      const resultCount = parseInt(localStorage.getItem('petAstroLocalCount') || 0);
-      numEl.textContent = resultCount;
-    }
+    if (numEl) numEl.textContent = total;
+  } catch(e) {
+    const el = document.getElementById('footer-user-count');
+    if (el) el.innerHTML = '🐾 ✨ 星星知道每个毛孩子的秘密';
   }
 }
 
