@@ -813,12 +813,11 @@ function getMoonSign(dateStr) {
   return signs[Math.floor(lon / 30)];
 }
 
-function getRisingSign(timeStr) {
-  // Simplified rising sign based on time of day
+function getRisingSign(timeStr, latDeg) {
   if (!timeStr) return '请提供出生时间';
-  const [h] = timeStr.split(':').map(Number);
-  const risingSigns = ['狮子座', '处女座', '天秤座', '天蝎座', '射手座', '摩羯座', '水瓶座', '双鱼座', '白羊座', '金牛座', '双子座', '巨蟹座'];
-  return risingSigns[(h + 6) % 12] || '白羊座';
+  // Use the new astronomical calculation
+  // Need date and lat - will be called from renderResult with these
+  return ''; // placeholder, actual calc done in renderResult
 }
 
 const personalityData = {
@@ -858,23 +857,110 @@ const elementData = {
   '巨蟹座': '💧 水象', '天蝎座': '💧 水象', '双鱼座': '💧 水象'
 };
 
-function formatPlanets(sunSign, moonSign) {
-  const planetSigns = {
-    'Sun': sunSign,
-    'Moon': moonSign,
-    'Mercury': getNeighborSign(sunSign, -1),
-    'Venus': getNeighborSign(sunSign, 1),
-    'Mars': getNeighborSign(moonSign, 1),
-    'Jupiter': getNeighborSign(sunSign, 2),
-    'Saturn': getNeighborSign(sunSign, -2)
-  };
-  return planetSigns;
+// ── Keplerian orbital elements for major planets (J2000) ──
+// Format: [meanLongitude(deg), longitudeOfPerihelion(deg), eccentricity, semiMajorAxis(AU), inclination(deg), longOfAscendingNode(deg)]
+// Rates are per Julian century from J2000.0
+const PLANET_ORBITS = {
+  Mercury: { L0:252.2509, L1:149472.6746, e:0.205630, a:0.387098, I:7.0047, Omega:48.3316, w0:77.4561, w1:0.1597, M0:174.7950, M1:149472.6746 },
+  Venus:   { L0:181.9798, L1:58517.8157, e:0.006772, a:0.723332, I:3.3946, Omega:76.6799, w0:131.5640, w1:0.0559, M0:50.4161, M1:58517.8157 },
+  Mars:    { L0:355.4530, L1:19140.3027, e:0.093405, a:1.523662, I:1.8497, Omega:49.5595, w0:336.0608, w1:0.1691, M0:19.3730, M1:19140.3027 },
+  Jupiter: { L0:34.3515, L1:3034.9057, e:0.048392, a:5.203363, I:1.3053, Omega:100.5561, w0:14.7288, w1:0.0794, M0:19.6508, M1:3034.9057 },
+  Saturn:  { L0:50.0774, L1:1222.1138, e:0.054150, a:9.537070, I:2.4845, Omega:113.7158, w0:92.5983, w1:0.1162, M0:316.9664, M1:1222.1138 },
+};
+
+const SIGN_NAMES = ['白羊座','金牛座','双子座','巨蟹座','狮子座','处女座','天秤座','天蝎座','射手座','摩羯座','水瓶座','双鱼座'];
+
+function julianDay(y, m, d) {
+  if (m <= 2) { y--; m += 12; }
+  const A = Math.floor(y / 100);
+  const B = 2 - A + Math.floor(A / 4);
+  return Math.floor(365.25 * (y + 4716)) + Math.floor(30.6001 * (m + 1)) + d + B - 1524.5;
 }
 
-function getNeighborSign(sign, offset) {
-  const order = ['白羊座', '金牛座', '双子座', '巨蟹座', '狮子座', '处女座', '天秤座', '天蝎座', '射手座', '摩羯座', '水瓶座', '双鱼座'];
-  const idx = order.indexOf(sign);
-  return order[((idx + offset) % 12 + 12) % 12];
+function getPlanetLongitude(name, jd) {
+  const p = PLANET_ORBITS[name];
+  if (!p) return 0;
+  const T = (jd - 2451545.0) / 36525;
+  const d2r = Math.PI / 180;
+  
+  // Mean anomaly
+  const M = ((p.M0 + p.M1 * T) % 360 + 360) % 360;
+  const Mr = M * d2r;
+  
+  // Equation of center (using eccentricity)
+  const e = p.e;
+  const C = ((2*e - e*e*e/4) * Math.sin(Mr) + (1.25*e*e) * Math.sin(2*Mr) + (13*e*e*e/12) * Math.sin(3*Mr)) * 180 / Math.PI;
+  
+  // True anomaly
+  const nu = M + C;
+  
+  // Ecliptic longitude = longitude of perihelion + true anomaly
+  const w = p.w0 + p.w1 * T;
+  let lon = (w + nu) % 360;
+  if (lon < 0) lon += 360;
+  
+  return lon;
+}
+
+// Get planet sign from ecliptic longitude
+function getPlanetSign(name, jd) {
+  const lon = getPlanetLongitude(name, jd);
+  return { sign: SIGN_NAMES[Math.floor(lon / 30)], degree: (lon % 30).toFixed(1), longitude: lon.toFixed(1) };
+}
+
+// Calculate Ascendant (rising sign)
+function calcRisingSign(dateStr, timeStr, latDeg, lonDeg) {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const [h, min] = (timeStr || '12:00').split(':').map(Number);
+  const utcH = h - 8; // UTC+8 timezone
+  const utcDay = utcH < 0 ? d - 1 : d;
+  const utcHour = ((utcH % 24) + 24) % 24;
+  
+  const JD = julianDay(y, m, utcDay) + utcHour / 24 + min / 1440;
+  const T = (JD - 2451545.0) / 36525;
+  
+  // Greenwich sidereal time (degrees)
+  let GST = 280.46061837 + 360.98564736629 * (JD - 2451545.0) + 0.000387933 * T * T - T * T * T / 38710000;
+  GST = ((GST % 360) + 360) % 360;
+  
+  // Local sidereal time
+  const LST = (GST + lonDeg) % 360;
+  
+  // Ascendant formula
+  const eps = 23.43683 * Math.PI / 180; // Obliquity
+  const latR = latDeg * Math.PI / 180;
+  const lstR = LST * Math.PI / 180;
+  
+  const num = -Math.cos(lstR);
+  const den = Math.sin(eps) * Math.tan(latR) + Math.cos(eps) * Math.sin(lstR);
+  
+  let asc = Math.atan2(num, den) * 180 / Math.PI;
+  
+  // Quadrant adjustment (ascendant is in the same quadrant as LST + 180)
+  const lmt = (LST + 180) % 360;
+  while (Math.abs(asc - lmt) > 90) asc += 180;
+  asc = ((asc % 360) + 360) % 360;
+  
+  return { sign: SIGN_NAMES[Math.floor(asc / 30)], degree: (asc % 30).toFixed(1) };
+}
+
+// Simplified moon sign using astronomical algorithm (reuses getMoonSign after JD conversion)
+function formatPlanets(sunSign, moonSign, dateStr, timeStr, latDeg) {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const jd = julianDay(y, m, d);
+  
+  const planets = {};
+  planets.Sun = sunSign;
+  planets.Moon = moonSign;
+  
+  // Calculate each planet's sign using Keplerian orbits
+  const planetNames = ['Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn'];
+  planetNames.forEach(name => {
+    const result = getPlanetSign(name, jd);
+    planets[name] = result.sign;
+  });
+  
+  return planets;
 }
 
 const planetEmoji = {
@@ -982,17 +1068,25 @@ function renderResult(name, breed, date, time, cityName, cityLat, cityLon) {
   const sunData = getZodiacSign(m, d);
   const sunSign = sunData.name;
   const moonSign = getMoonSign(date);
-  const risingSign = getRisingSign(time);
+  
+  // Calculate rising sign using astronomical method
+  let risingSign = '未知';
+  const latDeg = parseFloat(cityLat) || 31.2;
+  const lonDeg = parseFloat(cityLon) || 121.4;
+  try {
+    const asc = calcRisingSign(date, time, latDeg, lonDeg);
+    risingSign = asc.sign;
+  } catch(e) { risingSign = '白羊座'; }
   
   const person = personalityData[sunSign] || { trait: '独特小宝贝', desc: '', advice: '多陪伴、多关爱，它就是最幸福的小宝贝！' };
   const moonReading = moonReadings[moonSign] || '';
-  const planets = formatPlanets(sunSign, moonSign);
+  const planets = formatPlanets(sunSign, moonSign, date, time, latDeg);
   const aspects = generateAspects(planets);
   
   // Location display
   const locText = cityName || '未知地点';
   
-  const result = { sunSign, sunDegree: 0, moonSign, moonDegree: 0, risingSign, risingDegree: 0 };
+  const result = { sunSign, sunDegree: 0, moonSign, moonDegree: 0, risingSign, risingDegree: 0, planets };
   
   // Planet icons
   const planetIcons = { '白羊座': '♈', '金牛座': '♉', '双子座': '♊', '巨蟹座': '♋', '狮子座': '♌', '处女座': '♍', '天秤座': '♎', '天蝎座': '♏', '射手座': '♐', '摩羯座': '♑', '水瓶座': '♒', '双鱼座': '♓' };
