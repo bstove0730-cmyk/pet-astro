@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>🐾 宠物星盘管理后台</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #0f0a1e; color: #e0d6f0; min-height: 100vh; }
+.container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+
+/* Header */
+.header { display: flex; justify-content: space-between; align-items: center; padding: 16px 0; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 24px; }
+.header h1 { font-size: 22px; background: linear-gradient(135deg, #c084fc, #f472b6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.header .stats { display: flex; gap: 24px; }
+.header .stat { text-align: center; }
+.header .stat-num { font-size: 24px; font-weight: 700; color: #fbbf24; }
+.header .stat-label { font-size: 12px; color: #a89bc2; }
+
+/* Stats cards */
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+.stat-card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 14px; padding: 20px; }
+.stat-card .num { font-size: 28px; font-weight: 800; color: #c084fc; }
+.stat-card .label { font-size: 13px; color: #a89bc2; margin-top: 4px; }
+
+/* Search & controls */
+.controls { display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+.controls input { flex: 1; min-width: 200px; padding: 10px 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #e0d6f0; font-size: 14px; outline: none; }
+.controls input:focus { border-color: #c084fc; }
+.controls select { padding: 10px 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #e0d6f0; font-size: 14px; outline: none; }
+.refresh-btn { padding: 10px 20px; border-radius: 10px; border: none; background: linear-gradient(135deg, #c084fc, #f472b6); color: white; font-size: 14px; font-weight: 600; cursor: pointer; }
+.refresh-btn:hover { opacity: 0.9; }
+
+/* Table */
+.table-wrap { overflow-x: auto; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 14px; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { text-align: left; padding: 12px 14px; color: #a89bc2; font-weight: 600; border-bottom: 1px solid rgba(255,255,255,0.06); white-space: nowrap; }
+td { padding: 10px 14px; border-bottom: 1px solid rgba(255,255,255,0.03); }
+tr:hover { background: rgba(255,255,255,0.03); }
+tr:last-child td { border-bottom: none; }
+td .badge { display: inline-block; padding: 2px 8px; border-radius: 8px; font-size: 11px; font-weight: 600; }
+.badge-dog { background: rgba(192,132,252,0.15); color: #c084fc; }
+.badge-cat { background: rgba(244,114,182,0.15); color: #f472b6; }
+td .zodiac { font-size: 16px; }
+.actions { display: flex; gap: 6px; }
+.actions button { padding: 4px 10px; border-radius: 6px; border: none; cursor: pointer; font-size: 12px; }
+.btn-view { background: rgba(192,132,252,0.15); color: #c084fc; }
+.btn-del { background: rgba(244,67,54,0.15); color: #ef5350; }
+
+/* Detail modal */
+.modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 1000; justify-content: center; align-items: center; padding: 20px; }
+.modal.show { display: flex; }
+.modal-content { background: #1a1230; border-radius: 16px; padding: 28px; max-width: 500px; width: 100%; max-height: 80vh; overflow-y: auto; border: 1px solid rgba(255,255,255,0.08); }
+.modal-content h2 { font-size: 20px; margin-bottom: 16px; }
+.modal-content .field { margin-bottom: 10px; }
+.modal-content .field-label { font-size: 12px; color: #a89bc2; }
+.modal-content .field-value { font-size: 15px; color: #e0d6f0; font-weight: 600; }
+.modal-close { float: right; background: none; border: none; color: #a89bc2; font-size: 24px; cursor: pointer; }
+.modal .raw-json { margin-top: 12px; padding: 12px; background: rgba(0,0,0,0.3); border-radius: 8px; font-size: 11px; font-family: monospace; white-space: pre-wrap; word-break: break-all; color: #a89bc2; max-height: 200px; overflow-y: auto; }
+
+/* Charts */
+.charts { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+.chart-box { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 14px; padding: 20px; }
+.chart-box h3 { font-size: 14px; color: #a89bc2; margin-bottom: 12px; }
+.bar-item { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 13px; }
+.bar-label { min-width: 80px; }
+.bar-track { flex: 1; height: 20px; background: rgba(255,255,255,0.05); border-radius: 10px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 10px; background: linear-gradient(90deg, #c084fc, #f472b6); transition: width 0.3s; }
+.bar-count { min-width: 30px; text-align: right; color: #a89bc2; font-size: 12px; }
+
+.pagination { display: flex; justify-content: center; gap: 8px; padding: 16px; }
+.pagination button { padding: 6px 14px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.03); color: #e0d6f0; cursor: pointer; font-size: 13px; }
+.pagination button.active { background: #c084fc; border-color: #c084fc; color: white; }
+.pagination button:disabled { opacity: 0.3; cursor: default; }
+
+.empty { text-align: center; padding: 60px 20px; color: #a89bc2; }
+.empty .big-icon { font-size: 48px; margin-bottom: 12px; }
+
+@media (max-width: 768px) {
+  .charts { grid-template-columns: 1fr; }
+  .header { flex-direction: column; gap: 12px; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>📊 宠物星盘 · 管理后台</h1>
+    <div class="stats">
+      <div class="stat"><div class="stat-num" id="stat-total">0</div><div class="stat-label">总报告</div></div>
+      <div class="stat"><div class="stat-num" id="stat-today">0</div><div class="stat-label">今日</div></div>
+      <div class="stat"><div class="stat-num" id="stat-week">0</div><div class="stat-label">近7天</div></div>
+    </div>
+  </div>
+
+  <!-- Stats charts -->
+  <div class="charts">
+    <div class="chart-box">
+      <h3>🐶 热门宠物名 TOP 10</h3>
+      <div id="top-pets"></div>
+    </div>
+    <div class="chart-box">
+      <h3>🏙️ 热门城市 TOP 10</h3>
+      <div id="top-cities"></div>
+    </div>
+  </div>
+
+  <!-- Controls -->
+  <div class="controls">
+    <input type="text" id="search-input" placeholder="🔍 搜索宠物名 / 城市 / 品种..." onkeyup="searchReports()">
+    <select id="limit-select" onchange="loadReports()">
+      <option value="20">20条/页</option>
+      <option value="50">50条/页</option>
+      <option value="100">100条/页</option>
+    </select>
+    <button class="refresh-btn" onclick="loadAll()">🔄 刷新</button>
+  </div>
+
+  <!-- Table -->
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>时间</th>
+          <th>宠物名</th>
+          <th>品种</th>
+          <th>出生</th>
+          <th>城市</th>
+          <th>☀️太阳</th>
+          <th>🌙月亮</th>
+          <th>🌅上升</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody id="report-table"></tbody>
+    </table>
+    <div class="pagination" id="pagination"></div>
+  </div>
+
+  <!-- Detail modal -->
+  <div class="modal" id="detail-modal">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeModal()">&times;</button>
+      <h2 id="modal-title">📋 报告详情</h2>
+      <div id="modal-body"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+let currentPage = 1;
+
+async function api(path) {
+  try {
+    const r = await fetch(path);
+    return await r.json();
+  } catch (e) { return { success: false }; }
+}
+
+async function loadStats() {
+  const data = await api('/api/stats');
+  if (!data.success) return;
+  const s = data.stats;
+  document.getElementById('stat-total').textContent = s.total;
+  document.getElementById('stat-today').textContent = s.today;
+  document.getElementById('stat-week').textContent = s.thisWeek;
+
+  // Top pets bar
+  const petsHtml = s.topPets.map(p => {
+    const pct = s.total > 0 ? (p.count / s.total * 100).toFixed(1) : 0;
+    return `<div class="bar-item"><span class="bar-label">🐾 ${p.name}</span><div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div><span class="bar-count">${p.count}</span></div>`;
+  }).join('');
+  document.getElementById('top-pets').innerHTML = petsHtml || '<div style="color:#a89bc2;padding:10px;">暂无数据</div>';
+
+  // Top cities bar
+  const citiesHtml = s.topCities.map(c => {
+    const pct = s.total > 0 ? (c.count / s.total * 100).toFixed(1) : 0;
+    return `<div class="bar-item"><span class="bar-label">📍 ${c.city}</span><div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div><span class="bar-count">${c.count}</span></div>`;
+  }).join('');
+  document.getElementById('top-cities').innerHTML = citiesHtml || '<div style="color:#a89bc2;padding:10px;">暂无数据</div>';
+}
+
+async function loadReports() {
+  const search = document.getElementById('search-input').value;
+  const limit = document.getElementById('limit-select').value;
+  const url = `/api/reports?page=${currentPage}&limit=${limit}${search ? '&search=' + encodeURIComponent(search) : ''}`;
+  const data = await api(url);
+  if (!data.success) return;
+
+  const tbody = document.getElementById('report-table');
+  const rows = data.reports.map(r => {
+    const speciesBadge = r.species === 'cat' ? '<span class="badge badge-cat">🐱</span>' : '<span class="badge badge-dog">🐶</span>';
+    const time = r.createdAt ? r.createdAt.replace('T', ' ').substring(0, 19) : '-';
+    const date = r.birthDate || '-';
+    const loc = r.city || '-';
+    
+    return `<tr>
+      <td style="font-size:12px;color:#a89bc2;white-space:nowrap;">${time}</td>
+      <td><strong>${r.petName || '-'}</strong> ${speciesBadge}</td>
+      <td>${r.breed || '-'}</td>
+      <td>${date}${r.birthTime ? ' ' + r.birthTime : ''}</td>
+      <td>${loc}</td>
+      <td><span class="zodiac">${getSignEmoji(r.sunSign)}</span> ${r.sunSign || '-'}</td>
+      <td><span class="zodiac">${getSignEmoji(r.moonSign)}</span> ${r.moonSign || '-'}</td>
+      <td><span class="zodiac">${getSignEmoji(r.risingSign)}</span> ${r.risingSign || '-'}</td>
+      <td><div class="actions">
+        <button class="btn-view" onclick="viewReport('${r.id}')">查看</button>
+        <button class="btn-del" onclick="deleteReport('${r.id}')">删除</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+
+  tbody.innerHTML = rows || `<tr><td colspan="9"><div class="empty"><div class="big-icon">📭</div>还没有报告记录，快去分享小程序吧！</div></td></tr>`;
+
+  // Pagination
+  const p = data.pagination;
+  let pagHtml = `<button ${currentPage <= 1 ? 'disabled' : ''} onclick="goPage(${currentPage - 1})">‹</button>`;
+  for (let i = Math.max(1, currentPage - 2); i <= Math.min(p.totalPages, currentPage + 2); i++) {
+    pagHtml += `<button class="${i === currentPage ? 'active' : ''}" onclick="goPage(${i})">${i}</button>`;
+  }
+  pagHtml += `<button ${currentPage >= p.totalPages ? 'disabled' : ''} onclick="goPage(${currentPage + 1})">›</button>`;
+  document.getElementById('pagination').innerHTML = pagHtml;
+}
+
+function getSignEmoji(sign) {
+  const emojis = { '白羊座':'♈','金牛座':'♉','双子座':'♊','巨蟹座':'♋','狮子座':'♌','处女座':'♍','天秤座':'♎','天蝎座':'♏','射手座':'♐','摩羯座':'♑','水瓶座':'♒','双鱼座':'♓' };
+  return emojis[sign] || '';
+}
+
+function goPage(p) { currentPage = p; loadReports(); }
+function searchReports() { currentPage = 1; loadReports(); }
+
+async function viewReport(id) {
+  const data = await api(`/api/report/${id}`);
+  if (!data.success) return;
+  const r = data.report;
+  
+  document.getElementById('modal-title').textContent = `📋 ${r.petName || '无名毛孩子'} 的报告`;
+  
+  let html = `
+    <div class="field"><div class="field-label">报告ID</div><div class="field-value" style="font-size:12px;color:#a89bc2;">${r.id}</div></div>
+    <div class="field"><div class="field-label">宠物名</div><div class="field-value">${r.petName || '-'}</div></div>
+    <div class="field"><div class="field-label">品种</div><div class="field-value">${r.breed || '-'}</div></div>
+    <div class="field"><div class="field-label">出生</div><div class="field-value">${r.birthDate || '-'} ${r.birthTime || ''}</div></div>
+    <div class="field"><div class="field-label">城市</div><div class="field-value">${r.city || '-'}</div></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:12px 0;">
+      <div style="text-align:center;padding:10px;background:rgba(255,255,255,0.04);border-radius:10px;">
+        <div style="font-size:24px;">☀️</div>
+        <div style="font-size:18px;font-weight:700;">${r.sunSign || '-'}</div>
+        <div style="font-size:12px;color:#a89bc2;">太阳</div>
+      </div>
+      <div style="text-align:center;padding:10px;background:rgba(255,255,255,0.04);border-radius:10px;">
+        <div style="font-size:24px;">🌙</div>
+        <div style="font-size:18px;font-weight:700;">${r.moonSign || '-'}</div>
+        <div style="font-size:12px;color:#a89bc2;">月亮</div>
+      </div>
+      <div style="text-align:center;padding:10px;background:rgba(255,255,255,0.04);border-radius:10px;">
+        <div style="font-size:24px;">🌅</div>
+        <div style="font-size:18px;font-weight:700;">${r.risingSign || '-'}</div>
+        <div style="font-size:12px;color:#a89bc2;">上升</div>
+      </div>
+    </div>
+    <div class="field"><div class="field-label">状态</div><div class="field-value"><span style="color:#4caf50;">✅ ${r.status || 'completed'}</span></div></div>
+    <div class="field"><div class="field-label">生成时间</div><div class="field-value" style="font-size:13px;color:#a89bc2;">${r.createdAt ? r.createdAt.replace('T',' ').substring(0,19) : '-'}</div></div>
+    <div class="field"><div class="field-label">原始数据</div><div class="raw-json">${JSON.stringify(r.rawData || {}, null, 2)}</div></div>
+  `;
+  
+  document.getElementById('modal-body').innerHTML = html;
+  document.getElementById('detail-modal').classList.add('show');
+}
+
+function closeModal() {
+  document.getElementById('detail-modal').classList.remove('show');
+}
+
+async function deleteReport(id) {
+  if (!confirm('确定删除这条记录吗？')) return;
+  const r = await fetch(`/api/report/${id}`, { method: 'DELETE' });
+  const data = await r.json();
+  if (data.success) { loadAll(); }
+}
+
+function loadAll() { loadStats(); loadReports(); }
+
+// Keyboard shortcut
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+// Init
+loadAll();
+// Auto refresh every 30 seconds
+setInterval(loadStats, 30000);
+</script>
+</body>
+</html>
