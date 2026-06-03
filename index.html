@@ -910,25 +910,6 @@ function formatPlanets(sunSign, moonSign, dateStr) {
     catch(e) { planets[name] = sunSign; }
   });
   return planets;
-}}
-
-// Simplified moon sign using astronomical algorithm (reuses getMoonSign after JD conversion)
-function formatPlanets(sunSign, moonSign, dateStr, timeStr, latDeg) {
-  const [y, m, d] = dateStr.split('-').map(Number);
-  const jd = julianDay(y, m, d);
-  
-  const planets = {};
-  planets.Sun = sunSign;
-  planets.Moon = moonSign;
-  
-  // Calculate each planet's sign using Keplerian orbits
-  const planetNames = ['Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn'];
-  planetNames.forEach(name => {
-    const result = getPlanetSign(name, jd);
-    planets[name] = result.sign;
-  });
-  
-  return planets;
 }
 
 const planetEmoji = {
@@ -1048,7 +1029,7 @@ function renderResult(name, breed, date, time, cityName, cityLat, cityLon) {
   
   const person = personalityData[sunSign] || { trait: '独特小宝贝', desc: '', advice: '多陪伴、多关爱，它就是最幸福的小宝贝！' };
   const moonReading = moonReadings[moonSign] || '';
-  const planets = formatPlanets(sunSign, moonSign, date, time, latDeg);
+  const planets = formatPlanets(sunSign, moonSign, date);
   const aspects = generateAspects(planets);
   
   // Location display
