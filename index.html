@@ -983,7 +983,7 @@ function submitChart() {
       } catch(e) {}
       
       // Try to save to local backend (localhost)
-      fetch('http://localhost:3477/api/report', {
+      fetch('http://127.0.0.1:3477/api/report', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
