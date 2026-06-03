@@ -634,6 +634,7 @@
   </div>
   
   <div class="footer">
+    <div id="footer-user-count" style="margin-bottom:8px;">🐾 <span style="color:var(--accent);font-weight:700;">--</span> 位铲屎官已测</div>
     ✨ 每一只毛孩子都是星星送给人类的礼物 ✨<br>
     由 星野 AI 占星师 🐾 生成
   </div>
@@ -1032,7 +1033,13 @@ function renderResult(name, breed, date, time, cityName, cityLat, cityLon) {
     <div style="text-align:center; padding: 16px 0 4px; color: var(--text-secondary); font-size: 12px;">
       ✨ 星星知道每一个毛孩子的独特灵魂 ✨
     </div>
+    <div id="user-count-display" style="text-align:center; color: var(--text-secondary); font-size: 13px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.06);">
+      🐾 <span id="user-count-num">--</span> 位铲屎官已经测过了
+    </div>
   `;
+  
+  // Fetch and update user count
+  fetchUserCount();
   
   getElement('result-card').innerHTML = html;
   getElement('loading').style.display = 'none';
@@ -1041,6 +1048,24 @@ function renderResult(name, breed, date, time, cityName, cityLat, cityLon) {
   
   return result;
 }
+
+async function fetchUserCount() {
+  try {
+    const r = await fetch('/api/stats');
+    const data = await r.json();
+    if (data.success && data.stats) {
+      const total = data.stats.total || 0;
+      document.getElementById('footer-user-count').innerHTML = '🐾 <span style="color:var(--accent);font-weight:700;">' + total + '</span> 位铲屎官已测';
+      const numEl = document.getElementById('user-count-num');
+      if (numEl) numEl.textContent = total;
+    }
+  } catch(e) {
+    const el = document.getElementById('footer-user-count');
+    if (el) el.innerHTML = '🐾 ✨ 星星知道每个毛孩子的秘密';
+  }
+}
+
+setTimeout(fetchUserCount, 500);
 
 function resetForm() {
   getElement('result-area').style.display = 'none';
