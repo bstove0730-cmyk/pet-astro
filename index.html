@@ -773,14 +773,44 @@ function getZodiacSign(month, day) {
 }
 
 function getMoonSign(dateStr) {
-  // Simplified moon sign calculation based on date
-  // Uses a lunar cycle approximation
-  const baseDate = new Date('2000-01-01');
-  const targetDate = new Date(dateStr);
-  const daysDiff = Math.floor((targetDate - baseDate) / (1000 * 60 * 60 * 24));
-  const lunarPosition = ((daysDiff % 27.32) / 27.32) * 12; // 0-12 moon signs
-  const moonSigns = ['白羊座', '金牛座', '双子座', '巨蟹座', '狮子座', '处女座', '天秤座', '天蝎座', '射手座', '摩羯座', '水瓶座', '双鱼座'];
-  return moonSigns[Math.floor(lunarPosition) % 12];
+  // Calculate moon's ecliptic longitude using astronomical algorithm
+  // Accuracy ~2-3°, sufficient for zodiac sign determination
+  const [y, m, d] = dateStr.split('-').map(Number);
+  
+  // Convert to Julian Day
+  let year = y, month = m, day = d;
+  if (month <= 2) { year--; month += 12; }
+  const A = Math.floor(year / 100);
+  const B = 2 - A + Math.floor(A / 4);
+  const JD = Math.floor(365.25 * (year + 4716)) + Math.floor(30.6001 * (month + 1)) + day + B - 1524.5;
+  
+  const T = (JD - 2451545.0) / 36525;
+  
+  // Moon orbital elements (degrees)
+  const Lp = 218.3165 + 481267.881342 * T;  // Mean longitude
+  const M  = 134.9634 + 477198.867628 * T;  // Mean anomaly
+  const Ms = 357.5291 + 35999.050291 * T;   // Sun mean anomaly
+  const D  = 297.8502 + 445267.111403 * T;  // Elongation
+  const F  = 93.2720 + 483202.017523 * T;   // Argument of latitude
+  
+  const d2r = Math.PI / 180;
+  let lon = Lp;
+  lon += 6.289 * Math.sin(M * d2r);
+  lon += 1.274 * Math.sin((2*D - M) * d2r);
+  lon += 0.658 * Math.sin((2*D) * d2r);
+  lon += 0.214 * Math.sin((2*M) * d2r);
+  lon -= 0.186 * Math.sin(Ms * d2r);
+  lon -= 0.114 * Math.sin((2*F) * d2r);
+  lon += 0.051 * Math.sin((2*M - 2*D) * d2r);
+  lon -= 0.049 * Math.sin((2*D + M) * d2r);
+  lon += 0.031 * Math.sin((M - 2*Ms) * d2r);
+  lon += 0.031 * Math.sin((2*F + M) * d2r);
+  
+  lon = ((lon % 360) + 360) % 360;
+  
+  // Map longitude to zodiac sign
+  const signs = ['白羊座','金牛座','双子座','巨蟹座','狮子座','处女座','天秤座','天蝎座','射手座','摩羯座','水瓶座','双鱼座'];
+  return signs[Math.floor(lon / 30)];
 }
 
 function getRisingSign(timeStr) {
