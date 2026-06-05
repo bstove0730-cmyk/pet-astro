@@ -156,26 +156,36 @@ function getLocalReports() {
   } catch(e) { return []; }
 }
 
+const API_TUNNEL = 'https://calculation-ave-bench-thorough.trycloudflare.com';
+
 async function api(path) {
+  // Try local server first
   try {
     const r = await fetch(path);
     return await r.json();
-  } catch (e) { 
-    // Try localStorage fallback for admin dashboard
-    if (path === '/api/stats') {
-      const reports = getLocalReports();
-      const now = new Date();
-      const today = reports.filter(r => new Date(r.createdAt).toDateString() === now.toDateString()).length;
-      const week = reports.filter(r => (now - new Date(r.createdAt)) < 7*86400000).length;
-      return { success: true, stats: { total: reports.length, today, thisWeek: week,
-        topPets: [], topCities: [], signStats: [], dailyStats: [] } };
-    }
-    if (path.startsWith('/api/reports')) {
-      const reports = getLocalReports();
-      return { success: true, reports, pagination: { page:1, limit:20, total: reports.length, totalPages:1 } };
-    }
-    return { success: false }; 
+  } catch (e) {}
+  
+  // Try tunnel API
+  try {
+    const r = await fetch(API_TUNNEL + path);
+    const data = await r.json();
+    if (data.success) return data;
+  } catch (e) {}
+  
+  // Try localStorage fallback for admin dashboard
+  if (path === '/api/stats') {
+    const reports = getLocalReports();
+    const now = new Date();
+    const today = reports.filter(r => new Date(r.createdAt).toDateString() === now.toDateString()).length;
+    const week = reports.filter(r => (now - new Date(r.createdAt)) < 7*86400000).length;
+    return { success: true, stats: { total: reports.length, today, thisWeek: week,
+      topPets: [], topCities: [], signStats: [], dailyStats: [] } };
   }
+  if (path.startsWith('/api/reports')) {
+    const reports = getLocalReports();
+    return { success: true, reports, pagination: { page:1, limit:20, total: reports.length, totalPages:1 } };
+  }
+  return { success: false }; 
 }
 
 async function loadStats() {
@@ -296,9 +306,16 @@ function closeModal() {
 
 async function deleteReport(id) {
   if (!confirm('确定删除这条记录吗？')) return;
-  const r = await fetch(`/api/report/${id}`, { method: 'DELETE' });
-  const data = await r.json();
-  if (data.success) { loadAll(); }
+  try {
+    const r = await fetch(`/api/report/${id}`, { method: 'DELETE' });
+    const data = await r.json();
+    if (data.success) { loadAll(); return; }
+  } catch(e) {}
+  try {
+    const r = await fetch(API_TUNNEL + '/api/report/' + id, { method: 'DELETE' });
+    const data = await r.json();
+    if (data.success) loadAll();
+  } catch(e) {}
 }
 
 function loadAll() { loadStats(); loadReports(); }

@@ -1021,28 +1021,6 @@ function submitChart() {
         })
       }).catch(e => {});
       
-      // Try public tunnel API (for real-time sync)
-      fetch('https://calculation-ave-bench-thorough.trycloudflare.com/api/report', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          petName: name,
-          species: species,
-          breed: breed,
-          birthDate: date,
-          birthTime: time,
-          city: cityName,
-          latitude: cityLat ? parseFloat(cityLat) : null,
-          longitude: cityLon ? parseFloat(cityLon) : null,
-          sunSign: result.sunSign,
-          sunDegree: result.sunDegree,
-          moonSign: result.moonSign,
-          moonDegree: result.moonDegree,
-          risingSign: result.risingSign,
-          risingDegree: result.risingDegree
-        })
-      }).catch(e => {});
-      
     } catch (e) {
       showError('计算出错，请重试：' + e.message);
       getElement('form-card').style.display = 'block';
@@ -1185,19 +1163,6 @@ async function fetchUserCount() {
   try {
     // Try backend API first
     const r = await fetch('/api/stats');
-    const data = await r.json();
-    if (data.success && data.stats) {
-      const total = data.stats.total || 0;
-      document.getElementById('footer-user-count').innerHTML = '🐾 <span style="color:var(--accent);font-weight:700;">' + total + '</span> 位铲屎官已测';
-      const numEl = document.getElementById('user-count-num');
-      if (numEl) numEl.textContent = total;
-      return;
-    }
-  } catch(e) {}
-  
-  // Try public tunnel API
-  try {
-    const r = await fetch('https://calculation-ave-bench-thorough.trycloudflare.com/api/stats');
     const data = await r.json();
     if (data.success && data.stats) {
       const total = data.stats.total || 0;
