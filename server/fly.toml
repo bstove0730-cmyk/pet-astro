@@ -1,0 +1,21 @@
+# 🐾 宠物星盘 - Fly.io Configuration
+app = "pet-astro"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  PORT = "8080"
+  DATA_DIR = "/app/data"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = false  # Keep running 24/7
+  auto_start_machines = true
+  min_machines_running = 1
+
+# Persistent volume for data (reports.json)
+[[mounts]]
+  source = "pet_astro_data"
+  destination = "/app/data"
